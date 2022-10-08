@@ -20,16 +20,10 @@
     "ethers": "^5.7.1",
     "hardhat": "^2.11.2",
     "hardhat-gas-reporter": "^1.0.9",
+    "hardhat-watcher": "^2.5.0",
     "solidity-coverage": "^0.8.2",
     "ts-node": "^10.9.1",
     "typechain": "^8.1.0",
     "typescript": "beta"
-  },
-  "scripts": {
-    "compile": "echo hi",
-    "compile:watch": "npm-watch compile"
-  },
-  "watch": {
-    "compile": "contracts/**/*.sol"
   }
 }
