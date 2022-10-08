@@ -14,8 +14,11 @@ contract XFiatPegFactory is Ownable, IXFiatPegFactory {
         require(pegs[iso4217Code] == address(0), "Peg already existed");
 
         XFiatPeg peg = new XFiatPeg(address(this), iso4217Code);
-        address pegAddress = address(peg);
 
+        // Transfer ownership to the owner of the factory
+        peg.transferOwnership(this.owner());
+
+        address pegAddress = address(peg);
         pegs[iso4217Code] = pegAddress;
         emit PegCreated(iso4217Code, pegAddress);
     }
