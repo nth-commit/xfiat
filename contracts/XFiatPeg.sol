@@ -8,13 +8,16 @@ import "@openzeppelin/contracts/utils/Address.sol";
 
 interface IXFiatPeg {
     struct TrustedReserve {
-        address tokenAddress;
+        IERC20 token;
         uint8 decimals;
         uint256 limit;
     }
 
-    error NotImplemented(string reason);
-    error ReserveExistedError();
+    event TrustedReserveAuthorized(address tokenAddress);
+
+    error NotImplemented(string message);
+    error ReserveAlreadyAuthorizedError();
+    error ReserveNotAuthorizedError();
     error ERC20ValidationError_Contract();
     error ERC20ValidationError_Decimals();
 }
@@ -23,7 +26,7 @@ contract XFiatPeg is IXFiatPeg, Ownable {
     address public factory;
     string public iso4217Code;
     XFiatPegToken public pegToken;
-    mapping(address => TrustedReserve) trustedReserves;
+    mapping(address => TrustedReserve) public trustedReserves;
 
     constructor(address _factory, string memory _iso4217Code) {
         factory = _factory;
@@ -35,19 +38,38 @@ contract XFiatPeg is IXFiatPeg, Ownable {
         external
         onlyOwner
     {
-        if (trustedReserves[token].tokenAddress != address(0))
-            revert ReserveExistedError();
+        if (hasAuthorizedTrustedReserve(token))
+            revert ReserveAlreadyAuthorizedError();
         if (Address.isContract(token) == false)
             revert ERC20ValidationError_Contract();
 
-        ERC20 tokenRef = ERC20(token);
-        uint8 decimals = getTokenDecimals(tokenRef);
+        ERC20 _token = ERC20(token);
+        uint8 decimals = getTokenDecimals(_token);
 
         trustedReserves[token] = TrustedReserve({
-            tokenAddress: token,
+            token: _token,
             limit: limit,
             decimals: decimals
         });
+        emit TrustedReserveAuthorized(token);
+    }
+
+    function deposit(address token, uint256 amountIn) external {
+        // @todo Add slippage parameter "minAmountOut"
+        if (hasAuthorizedTrustedReserve(token) == false)
+            revert ReserveNotAuthorizedError();
+
+        address depositor = msg.sender;
+        unsafe_acceptReserveToken(token, depositor, amountIn);
+        pegToken.mint(depositor, amountIn);
+    }
+
+    function hasAuthorizedTrustedReserve(address token)
+        internal
+        view
+        returns (bool)
+    {
+        return address(trustedReserves[token].token) != address(0);
     }
 
     function getTokenDecimals(ERC20 tokenRef) internal view returns (uint8) {
@@ -61,6 +83,19 @@ contract XFiatPeg is IXFiatPeg, Ownable {
         } catch {
             revert ERC20ValidationError_Decimals();
         }
+    }
+
+    function unsafe_acceptReserveToken(
+        address token,
+        address depositor,
+        uint256 amountIn
+    ) internal {
+        SafeERC20.safeTransferFrom(
+            trustedReserves[token].token,
+            depositor,
+            address(this),
+            amountIn
+        );
     }
 }
 

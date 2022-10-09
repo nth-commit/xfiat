@@ -46,7 +46,7 @@ describe('XFiatPegFactory', () => {
       const tx = await xFiatPegFactory.createPeg(iso4217Code)
 
       const pegAddress = await xFiatPegFactory.pegs(iso4217Code)
-      expect(tx).to.emit(xFiatPegFactory, 'PegCreated').withArgs(iso4217Code, pegAddress)
+      await expect(tx).to.emit(xFiatPegFactory, 'PegCreated').withArgs(iso4217Code, pegAddress)
     })
 
     it('should create a XFiatPeg instance', async () => {
