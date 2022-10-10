@@ -6486,7 +6486,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:beta":
+"typescript@npm:^4.9.1-beta":
   version: 4.9.1-beta
   resolution: "typescript@npm:4.9.1-beta"
   bin:
@@ -6496,7 +6496,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@beta#~builtin<compat/typescript>":
+"typescript@patch:typescript@^4.9.1-beta#~builtin<compat/typescript>":
   version: 4.9.1-beta
   resolution: "typescript@patch:typescript@npm%3A4.9.1-beta#~builtin<compat/typescript>::version=4.9.1-beta&hash=701156"
   bin:
@@ -6846,7 +6846,7 @@ __metadata:
     solidity-coverage: ^0.8.2
     ts-node: ^10.9.1
     typechain: ^8.1.0
-    typescript: beta
+    typescript: ^4.9.1-beta
   languageName: unknown
   linkType: soft
 
