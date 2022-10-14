@@ -1,6 +1,9 @@
 {
   "name": "xfiat",
   "packageManager": "yarn@3.2.4",
+  "scripts": {
+    "test:watch": "yarn hardhat watch test"
+  },
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",
@@ -18,9 +21,11 @@
     "@types/node": "^18.8.3",
     "chai": "^4.3.6",
     "ethers": "^5.7.1",
+    "fast-check": "^3.2.0",
     "hardhat": "^2.11.2",
     "hardhat-gas-reporter": "^1.0.9",
     "hardhat-watcher": "^2.5.0",
+    "ix": "^5.0.0",
     "solidity-coverage": "^0.8.2",
     "ts-node": "^10.9.1",
     "typechain": "^8.1.0",
