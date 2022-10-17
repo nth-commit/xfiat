@@ -23,13 +23,11 @@ interface IXFiatPeg {
 }
 
 contract XFiatPeg is IXFiatPeg, Ownable {
-    address public factory;
     string public iso4217Code;
     XFiatPegToken public pegToken;
     mapping(address => TrustedReserve) public trustedReserves;
 
-    constructor(address _factory, string memory _iso4217Code) {
-        factory = _factory;
+    constructor(string memory _iso4217Code) {
         iso4217Code = _iso4217Code;
         pegToken = new XFiatPegToken(_iso4217Code);
     }

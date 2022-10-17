@@ -57,7 +57,6 @@ describe('XFiatPegFactory', () => {
       const pegAddress = await xFiatPegFactory.pegs(iso4217Code)
 
       const xFiatPeg = await ethers.getContractAt('XFiatPeg', pegAddress)
-      expect(await xFiatPeg.factory()).to.eq(xFiatPegFactory.address)
       expect(await xFiatPeg.iso4217Code()).to.eq(iso4217Code)
     })
   })

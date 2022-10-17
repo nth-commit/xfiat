@@ -2,6 +2,7 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers'
 import { BigNumber } from 'ethers'
 import fc from 'fast-check'
 import { ethers, network } from 'hardhat'
+import { UniswapV3Deployer } from '@uniswap/hardhat-v3-deploy/dist/deployer/UniswapV3Deployer'
 
 import { State } from './Types'
 import { ERC20, ReserveFunding } from '../../typechain-types'
@@ -53,8 +54,7 @@ it('LiquidityAccumulatingModel', async () => {
   await fc.assert(
     fc.asyncProperty(commands, (commands) =>
       fc.asyncModelRun(() => setupModelRun(systemFixture, actorBalances), commands)
-    ),
-    { numRuns: 10 }
+    )
   )
 })
 
@@ -116,9 +116,17 @@ const createSystemFixture = (targetLiquidity: BigNumber, actorBalances: Map<stri
     const signers = await Promise.all(actors.map((actor) => ethers.getImpersonatedSigner(actor)))
     await Promise.all(signers.map((signer) => fiatToken.mint(signer.address, actorBalances.get(signer.address)!)))
 
+    // Deploy the Uniswap V3 contracts
+    const [owner] = await ethers.getSigners()
+    const { factory: uniswapFactory } = await UniswapV3Deployer.deploy(owner)
+
     // Create the reserve funding contract
     const reserveFundingFactory = await ethers.getContractFactory('ReserveFunding')
-    const reserveFunding = await reserveFundingFactory.deploy(fiatToken.address, targetLiquidity)
+    const reserveFunding = await reserveFundingFactory.deploy(
+      fiatToken.address,
+      targetLiquidity,
+      uniswapFactory.address
+    )
 
     return { fiatToken, reserveFunding }
   }

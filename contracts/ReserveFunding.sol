@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 
 /**
  * A contract for intializing a new reserve currency. This process is kicked off by an applicant, such as a stablecoin
@@ -42,12 +43,19 @@ contract ReserveFunding is Ownable {
 
     IERC20 public token;
     uint256 public targetLiquidity;
+    IUniswapV3Factory public uniswapFactory;
+
     uint256 public totalLiquidity = 0;
     mapping(address => uint256) public liquidity;
 
-    constructor(address _token, uint256 _targetLiquidity) {
+    constructor(
+        address _token,
+        uint256 _targetLiquidity,
+        IUniswapV3Factory _uniswapFactory
+    ) {
         targetLiquidity = _targetLiquidity;
         token = IERC20(_token);
+        uniswapFactory = _uniswapFactory;
     }
 
     modifier inState1(State state1) {

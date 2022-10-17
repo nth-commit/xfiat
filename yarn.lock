@@ -5,6 +5,13 @@ __metadata:
   version: 6
   cacheKey: 8
 
+"@colors/colors@npm:1.5.0":
+  version: 1.5.0
+  resolution: "@colors/colors@npm:1.5.0"
+  checksum: d64d5260bed1d5012ae3fc617d38d1afc0329fec05342f4e6b838f46998855ba56e0a73833f4a80fa8378c84810da254f76a8a19c39d038260dc06dc4e007425
+  languageName: node
+  linkType: hard
+
 "@cspotcode/source-map-support@npm:^0.8.0":
   version: 0.8.1
   resolution: "@cspotcode/source-map-support@npm:0.8.1"
@@ -1231,6 +1238,53 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@uniswap/hardhat-v3-deploy@npm:^0.1.0":
+  version: 0.1.1
+  resolution: "@uniswap/hardhat-v3-deploy@npm:0.1.1"
+  dependencies:
+    "@uniswap/v3-core": 1.0.0
+    "@uniswap/v3-periphery": ^1.0.1
+    cli-table3: ^0.6.0
+  peerDependencies:
+    hardhat: ^2.0.0
+  checksum: d7cd486dbc44038ff71497f087c05277fc5877b361fb43c6fed47e0a7c76c518640bdcb7c66a2b9537b960a4249832499c9d345034c6f9cebbe0d6f812bcae9a
+  languageName: node
+  linkType: hard
+
+"@uniswap/lib@npm:^4.0.1-alpha":
+  version: 4.0.1-alpha
+  resolution: "@uniswap/lib@npm:4.0.1-alpha"
+  checksum: d7bbacccef40966af16c7e215ab085f575686d316b2802c9e1cfd03f7ad351970e547535670a28b2279c3cfcc4fb02888614c46f94efe2987af2309f3ec86127
+  languageName: node
+  linkType: hard
+
+"@uniswap/v2-core@npm:1.0.1":
+  version: 1.0.1
+  resolution: "@uniswap/v2-core@npm:1.0.1"
+  checksum: eaa118fe45eac2e80b7468547ce2cde12bd3c8157555d2e40e0462a788c9506c6295247b511382da85e44a89ad92aff7bb3433b23bfbd2eeea23942ecd46e979
+  languageName: node
+  linkType: hard
+
+"@uniswap/v3-core@npm:1.0.1":
+  version: 1.0.1
+  resolution: "@uniswap/v3-core@npm:1.0.1"
+  checksum: 4bfd8b218391a3d9efde44e0f984cfec3bc25889cd4d1386766828521006e71b210a3583ee32b52f3c81d384af9e8c39f471f2229e9af4d50da6801446ecb3e4
+  languageName: node
+  linkType: hard
+
+"@uniswap/v3-periphery@npm:1.0.1":
+  version: 1.0.1
+  resolution: "@uniswap/v3-periphery@npm:1.0.1"
+  dependencies:
+    "@openzeppelin/contracts": 3.4.1-solc-0.7-2
+    "@uniswap/lib": ^4.0.1-alpha
+    "@uniswap/v2-core": 1.0.1
+    "@uniswap/v3-core": 1.0.0
+    base64-sol: 1.0.1
+  checksum: 26c3babe6cfef10c300bcd022eccbb60a692ca6e8bc6abe0a937237560883377446e2a32fe56cf0f6278b2b70f34066a76c5d689e3dc5fb4660e1bbb3955a73a
+  languageName: node
+  linkType: hard
+
 "abbrev@npm:1, abbrev@npm:^1.0.0":
   version: 1.1.1
   resolution: "abbrev@npm:1.1.1"
@@ -1646,6 +1700,13 @@ __metadata:
   version: 1.5.1
   resolution: "base64-js@npm:1.5.1"
   checksum: 669632eb3745404c2f822a18fc3a0122d2f9a7a13f7fb8b5823ee19d1d2ff9ee5b52c53367176ea4ad093c332fd5ab4bd0ebae5a8e27917a4105a4cfc86b1005
+  languageName: node
+  linkType: hard
+
+"base64-sol@npm:1.0.1":
+  version: 1.0.1
+  resolution: "base64-sol@npm:1.0.1"
+  checksum: be0f9e8cf3c744256913223fbae8187773f530cc096e98a77f49ef0bd6cedeb294d15a784e439419f7cb99f07bf85b08999169feafafa1a9e29c3affc0bc6d0a
   languageName: node
   linkType: hard
 
@@ -2080,6 +2141,19 @@ __metadata:
     colors:
       optional: true
   checksum: 3ff8c821440a2a0e655a01f04e5b54a0365b3814676cd93cec2b2b0b9952a08311797ad242a181733fcff714fa7d776f8bb45ad812f296390bfa5ef584fb231d
+  languageName: node
+  linkType: hard
+
+"cli-table3@npm:^0.6.0":
+  version: 0.6.3
+  resolution: "cli-table3@npm:0.6.3"
+  dependencies:
+    "@colors/colors": 1.5.0
+    string-width: ^4.2.0
+  dependenciesMeta:
+    "@colors/colors":
+      optional: true
+  checksum: 09897f68467973f827c04e7eaadf13b55f8aec49ecd6647cc276386ea660059322e2dd8020a8b6b84d422dbdd619597046fa89cbbbdc95b2cea149a2df7c096c
   languageName: node
   linkType: hard
 
@@ -6878,6 +6952,7 @@ __metadata:
     "@types/chai": ^4.3.3
     "@types/mocha": ^9.1.0
     "@types/node": ^18.8.3
+    "@uniswap/hardhat-v3-deploy": ^0.1.0
     chai: ^4.3.6
     ethers: ^5.7.1
     fast-check: ^3.2.0
