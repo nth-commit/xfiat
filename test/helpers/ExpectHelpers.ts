@@ -8,6 +8,9 @@ export function expectBigNumber(actual: BigNumber) {
     toEqual: (other: BigNumber | number) => {
       expect(actual.toNumber()).to.be.eq(asNumber(other))
     },
+    toNotEqual: (other: BigNumber | number) => {
+      expect(actual.toNumber()).to.not.be.eq(asNumber(other))
+    },
     toBeLessThanOrEqual: (other: BigNumber | number) => {
       expect(actual.toNumber()).to.be.lessThanOrEqual(asNumber(other))
     },

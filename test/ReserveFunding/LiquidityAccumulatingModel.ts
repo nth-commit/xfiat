@@ -1,4 +1,5 @@
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers'
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { BigNumber } from 'ethers'
 import fc from 'fast-check'
 import { ethers, network } from 'hardhat'
@@ -10,6 +11,7 @@ import { expectBigNumber } from '../helpers/ExpectHelpers'
 import { BigNumberHelpers } from '../helpers/BigNumberHelpers'
 import { AsyncCommandFactory } from '../helpers/AsyncCommandFactory'
 import { EthersHelpers } from '../helpers/EthersHelpers'
+import { expect } from 'chai'
 
 type Model = {
   readonly initialActorBalances: Map<string, BigNumber>
@@ -17,50 +19,65 @@ type Model = {
 }
 
 type System = {
+  owner: SignerWithAddress
   reserveFunding: ReserveFunding
   fiatToken: ERC20
 }
 
-type Invariant = AsyncCommandFactory.Invariant<Model, System>
+type Invariant = AsyncCommandFactory.Invariant<System>
 
-it('LiquidityAccumulatingModel', async () => {
-  const targetLiquidity = BigNumber.from(100)
-  const actorBalances = new Map(
-    EthersHelpers.createWalletAddresses(10).map((actor) => [actor, BigNumber.from(10000000000000)])
-  )
-
-  const invariants = [
-    async function totalLiquidityMustNotExceedTargetLiquidity(_, r) {
-      const totalLiquidity = await r.reserveFunding.totalLiquidity()
-      const targetLiquidity = await r.reserveFunding.targetLiquidity()
-      expectBigNumber(totalLiquidity).toBeLessThanOrEqual(targetLiquidity)
-    },
-    async function totalLiquidityMustEqualBalance(_, r) {
-      const totalLiquidity = await r.reserveFunding.totalLiquidity()
-      const balance = await r.fiatToken.balanceOf(r.reserveFunding.address)
-      expectBigNumber(totalLiquidity).toEqual(balance)
-    },
-    async function totalLiquidityMustEqualSumOfActorBalances(_, r) {
-      const totalLiquidity = await r.reserveFunding.totalLiquidity()
-      const liquidityForActors = await Promise.all([...actorBalances.keys()].map((a) => r.reserveFunding.liquidity(a)))
-      expectBigNumber(BigNumberHelpers.sum(liquidityForActors)).toEqual(totalLiquidity)
-    },
-  ] satisfies Invariant[]
-
-  const commands = fc.commands(createCommands(targetLiquidity, actorBalances, invariants), { size: '+4' })
-
-  const systemFixture = createSystemFixture(targetLiquidity, actorBalances)
-
-  await fc.assert(
-    fc.asyncProperty(commands, (commands) =>
-      fc.asyncModelRun(() => setupModelRun(systemFixture, actorBalances), commands)
+describe('ReserveFunding', () => {
+  it('liquidity accumulating model', async () => {
+    const targetLiquidity = BigNumber.from(100)
+    const actorBalances = new Map(
+      EthersHelpers.createWalletAddresses(10).map((actor) => [actor, BigNumber.from(10000000000000)])
     )
-  )
+
+    const invariants = [
+      async function totalLiquidityMustNotExceedTargetLiquidity(system) {
+        const totalLiquidity = await system.reserveFunding.totalLiquidity()
+        const targetLiquidity = await system.reserveFunding.targetLiquidity()
+        expectBigNumber(totalLiquidity).toBeLessThanOrEqual(targetLiquidity)
+      },
+      async function totalLiquidityMustEqualBalance(system) {
+        const totalLiquidity = await system.reserveFunding.totalLiquidity()
+        const balance = await system.fiatToken.balanceOf(system.reserveFunding.address)
+        expectBigNumber(totalLiquidity).toEqual(balance)
+      },
+      async function totalLiquidityMustEqualSumOfActorBalances(system) {
+        const totalLiquidity = await system.reserveFunding.totalLiquidity()
+        const liquidityForActors = await Promise.all(
+          [...actorBalances.keys()].map((a) => system.reserveFunding.liquidity(a))
+        )
+        expectBigNumber(BigNumberHelpers.sum(liquidityForActors)).toEqual(totalLiquidity)
+      },
+      async function ifInAccumulatedState_thenTotalLiquidityMustEqualTargetLiquidity(system) {
+        const nonAccumulatedStates: Set<State> = new Set(['liquidityLocked' , 'liquidityExposed' , 'completed'])
+        const state = await State.query(system.reserveFunding)
+
+        if (nonAccumulatedStates.has(state) === false) {
+          const totalLiquidity = await system.reserveFunding.totalLiquidity()
+          const targetLiquidity = await system.reserveFunding.totalLiquidity()
+          expectBigNumber(totalLiquidity).toEqual(targetLiquidity)
+        }
+      },
+    ] satisfies Invariant[]
+
+    const commands = fc.commands(createCommands(targetLiquidity, actorBalances, invariants), {size: '+1'})
+
+    const systemFixture = createSystemFixture(targetLiquidity, actorBalances)
+
+    await fc.assert(
+      fc.asyncProperty(commands, (commands) =>
+        fc.asyncModelRun(() => setupModelRun(systemFixture, actorBalances), commands)
+      )
+    )
+  })
 })
 
 const createCommands = (targetLiquidity: BigNumber, actorBalances: Map<string, BigNumber>, invariants: Invariant[]) => {
   const commandFactory = AsyncCommandFactory.create<Model, System>({
-    globalCheck: (m) => m.state === 'liquidityAccumulating',
+    globalCheck: (m) => m.state === 'liquidityAccumulating' || m.state === 'cancelled',
     globalPostRun: async (m, r) => {
       m.state = await State.query(r.reserveFunding)
     },
@@ -69,6 +86,7 @@ const createCommands = (targetLiquidity: BigNumber, actorBalances: Map<string, B
 
   const addLiquidityCommand = (amount: BigNumber, actor: string) =>
     commandFactory.createCommand({
+      check: (m) => m.state !== 'cancelled',
       run: async (_, r) => {
         const signer = await ethers.getImpersonatedSigner(actor)
         await r.fiatToken.connect(signer).approve(r.reserveFunding.address, amount)
@@ -89,6 +107,30 @@ const createCommands = (targetLiquidity: BigNumber, actorBalances: Map<string, B
       toString: () => `ClearLiquidity(${actor})`,
     })
 
+  const cancelLiquidityAccumulating = () =>
+    commandFactory.createCommand({
+      check: (m) => m.state !== 'cancelled',
+      run: async (m, r) => {
+        await r.reserveFunding.connect(r.owner).cancelLiquidityAccumulating()
+        
+        const state = await State.query(r.reserveFunding)
+        expect(state).to.eq('cancelled')
+      },
+      toString: () => `CancelLiquidityAccumulating()`,
+    })
+
+    const resumeLiquidityAccumulating = () =>
+    commandFactory.createCommand({
+      check: (m) => m.state === 'cancelled',
+      run: async (_, r) => {
+        await r.reserveFunding.connect(r.owner).resumeLiquidityAccumulating()
+        
+        const state = await State.query(r.reserveFunding)
+        expect(state).to.not.eq('cancelled')
+      },
+      toString: () => `ResumeLiquidityAccumulating()`,
+    })
+
   const arbActor = (): fc.Arbitrary<string> => fc.constantFrom(...actorBalances.keys())
 
   const arbAmount = (): fc.Arbitrary<BigNumber> =>
@@ -97,6 +139,8 @@ const createCommands = (targetLiquidity: BigNumber, actorBalances: Map<string, B
   return [
     fc.tuple(arbAmount(), arbActor()).map(([amount, actor]) => addLiquidityCommand(amount, actor)),
     arbActor().map((actor) => clearLiquidityCommand(actor)),
+    fc.constant(cancelLiquidityAccumulating()),
+    fc.constant(resumeLiquidityAccumulating()),
   ]
 }
 
@@ -128,7 +172,7 @@ const createSystemFixture = (targetLiquidity: BigNumber, actorBalances: Map<stri
       uniswapFactory.address
     )
 
-    return { fiatToken, reserveFunding }
+    return { owner, fiatToken, reserveFunding }
   }
 
 const setupModelRun = async (

@@ -84,7 +84,7 @@ contract ReserveFunding is Ownable {
         totalLiquidity += addedLiquidity;
         liquidity[msg.sender] += addedLiquidity;
 
-        if (totalLiquidity >= targetLiquidity) {
+        if (shouldBeLocked()) {
             state = State.LiquidityLocked;
         }
     }
@@ -116,7 +116,19 @@ contract ReserveFunding is Ownable {
         state = State.Cancelled;
     }
 
-    function exposeLiquidity() external inState1(State.LiquidityAccumulating) {
+    function resumeLiquidityAccumulating()
+        external
+        onlyOwner
+        inState1(State.Cancelled)
+    {
+        if (shouldBeLocked()) {
+            state = State.LiquidityLocked;
+        } else {
+            state = State.LiquidityAccumulating;
+        }
+    }
+
+    function exposeLiquidity() external inState1(State.LiquidityLocked) {
         // Timelock for X
 
         state = State.LiquidityExposed;
@@ -132,5 +144,9 @@ contract ReserveFunding is Ownable {
         // Transfer pair token liquidity back to contributors
 
         state = State.Cancelled;
+    }
+
+    function shouldBeLocked() internal view returns (bool) {
+        return totalLiquidity >= targetLiquidity;
     }
 }
