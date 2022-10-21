@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
+import "./XFiatPegToken.sol";
+
 interface IXFiatPeg {
     struct TrustedReserve {
         IERC20 token;
@@ -94,22 +96,5 @@ contract XFiatPeg is IXFiatPeg, Ownable {
             address(this),
             amountIn
         );
-    }
-}
-
-contract XFiatPegToken is ERC20, Ownable {
-    constructor(string memory iso4217Code)
-        ERC20(
-            string.concat("XFiat ", iso4217Code, " Peg"),
-            string.concat("X", iso4217Code)
-        )
-    {}
-
-    function mint(address account, uint256 amount) external onlyOwner {
-        _mint(account, amount);
-    }
-
-    function burn(address account, uint256 amount) external onlyOwner {
-        _burn(account, amount);
     }
 }

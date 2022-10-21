@@ -1,7 +1,7 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { ethers, network } from 'hardhat'
 import { range } from 'ix/iterable'
-import { IncentiveToken } from '../../typechain-types'
+import { IncentiveToken, XFiatPegToken } from '../../typechain-types'
 
 export namespace EthersHelpers {
   export function createWalletAddress(): string {
@@ -25,6 +25,11 @@ export namespace EthersHelpers {
       await network.provider.send('hardhat_setBalance', [address, '0x10000000000000000'])
 
       return await ethers.getImpersonatedSigner(address)
+    }
+
+    export async function deployXFiatPegToken(owner: SignerWithAddress, iso4217Code: string): Promise<XFiatPegToken> {
+      const factory = await ethers.getContractFactory('XFiatPegToken')
+      return await factory.connect(owner).deploy(iso4217Code)
     }
   }
 }

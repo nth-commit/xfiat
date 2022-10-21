@@ -39,7 +39,7 @@ describe('IncentiveToken', () => {
   describe('mint', () => {
     it('should revert if caller not owner', async () => {
       await fc.assert(
-        fc.asyncProperty(Arbitrary.walletAddress, Arbitrary.bigNumber, async (address, amount) => {
+        fc.asyncProperty(Arbitrary.walletAddress, Arbitrary.bigNumber(), async (address, amount) => {
           const { nonOwner, contracts } = await loadFixture(systemFixture)
           const { incentiveToken } = contracts(nonOwner)
 
@@ -52,7 +52,7 @@ describe('IncentiveToken', () => {
 
     it('should transfer amount to the target', async () => {
       await fc.assert(
-        fc.asyncProperty(Arbitrary.walletAddress, Arbitrary.bigNumber, async (address, amount) => {
+        fc.asyncProperty(Arbitrary.walletAddress, Arbitrary.bigNumber(), async (address, amount) => {
           const { owner, contracts } = await loadFixture(systemFixture)
           const { incentiveToken } = contracts(owner)
 
